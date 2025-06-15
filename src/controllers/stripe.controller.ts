@@ -37,6 +37,6 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
 
 export const successPage = (req: Request, res: Response) => {
   res.status(200).json({
-    message: 'Paiement réussi ! Merci pour votre achat.',
+    paymentSuccess: true,
   });
 };

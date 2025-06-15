@@ -1,46 +1,122 @@
+import axios from 'axios';
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
-import * as mvolaService from '../services/mvola.service';
+import { v4 as uuidv4 } from 'uuid';
+import { Buffer } from 'buffer';
 
-async function getToken(req: Request, res: Response) {
+const getAccessToken = async (): Promise<string> => {
+  const consumerKey = process.env.MVOLA_CONSUMER_KEY!;
+  const consumerSecret = process.env.MVOLA_CONSUMER_SECRET!;
+
+  const credentials = Buffer.from(`${consumerKey}:${consumerSecret}`).toString(
+    'base64',
+  );
+
+  const response = await axios.post(
+    'https://developer.mvola.mg/oauth2/token',
+    'grant_type=client_credentials',
+    {
+      headers: {
+        Authorization: `Basic ${credentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    },
+  );
+
+  return response.data.access_token;
+};
+
+type TransactionRequest = {
+  amount: number;
+  currency: string;
+  descriptionText: string;
+  requestDate: string;
+  debitParty: { key: string; value: string }[];
+  creditParty: { key: string; value: string }[];
+  metadata: { key: string; value: string }[];
+  requestingOrganisationTransactionReference: string;
+  originalTransactionReference: string;
+};
+
+const createTransactionBody = (
+  amount: number,
+  payer: string,
+  payee: string,
+  description: string,
+  partnerName: string,
+): TransactionRequest => {
+  const transactionRef = uuidv4();
+  return {
+    amount,
+    currency: 'Ar',
+    descriptionText: description,
+    requestDate: new Date().toISOString(),
+    debitParty: [{ key: 'msisdn', value: payer }],
+    creditParty: [{ key: 'msisdn', value: payee }],
+    metadata: [
+      { key: 'partnerName', value: partnerName },
+      { key: 'fc', value: 'Ar' },
+      { key: 'amountFc', value: amount.toString() },
+    ],
+    requestingOrganisationTransactionReference: transactionRef,
+    originalTransactionReference: transactionRef,
+  };
+};
+
+const sendMerchantPayment = async (
+  accessToken: string,
+  transaction: TransactionRequest,
+  partnerName: string,
+  callbackUrl: string,
+) => {
+  const correlationId = uuidv4();
+
+  const response = await axios.post(
+    'https://developer.mvola.mg/mvola/mm/transactions/type/merchantpay/1.0.0',
+    transaction,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'X-USER-LANGUAGE': 'FR',
+        'X-USER-CURRENCY': 'Ar',
+        'X-CorrelationID': correlationId,
+        'X-Callback-URL': callbackUrl,
+        'X-PartnerName': partnerName,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  return response.data;
+};
+
+const requestToPay = async (req: Request, res: Response): Promise<void> => {
   try {
-    const token = await mvolaService.getAccessToken();
-    res.json({ access_token: token });
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(500).json({ error: error.message });
-    } else {
-      res.status(500).json({ unknownError: error });
-    }
-    return;
-  }
-}
-
-async function transfer(req: Request, res: Response) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
-    return;
-  }
-
-  const { amount, phoneNumber, externalId, payerMessage, payeeNote } = req.body;
-
-  try {
-    const data = {
+    const {
       amount,
-      currency: 'MGA',
-      externalId: externalId || 'EXT123456',
-      payer: { partyIdType: 'MSISDN', partyId: phoneNumber },
-      payeeNote: payeeNote || 'Paiement MVola',
-      payerMessage: payerMessage || 'Merci pour votre paiement',
-    };
+      payer,
+      payee,
+      description = 'Paiement réservation',
+    } = req.body;
 
-    const response = await mvolaService.makeApiCall(
-      '/mvola/v1/transfer',
-      'POST',
-      data,
+    const accessToken = await getAccessToken();
+    const partnerName = process.env.MVOLA_PARTNER_NAME!;
+    const callbackUrl = process.env.MVOLA_CALLBACK_URL!;
+
+    const transaction = createTransactionBody(
+      amount,
+      payer,
+      payee,
+      description,
+      partnerName,
     );
-    res.json(response);
+
+    const response = await sendMerchantPayment(
+      accessToken,
+      transaction,
+      partnerName,
+      callbackUrl,
+    );
+
+    res.status(200).json({ success: true });
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
@@ -49,6 +125,6 @@ async function transfer(req: Request, res: Response) {
     }
     return;
   }
-}
+};
 
-export { getToken, transfer };
+export { requestToPay };
