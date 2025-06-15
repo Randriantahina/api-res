@@ -1,16 +1,17 @@
 import express from 'express';
-
 import {
   login,
   logout,
   register,
   requireAuth,
-} from '../controllers/auth.controller';
-import { isAuthenticated } from '../middlewares/auth.middleware';
+} from '@/controllers/auth.controller';
+
 import {
   loginValidation,
   registerValidation,
-} from '../validations/auth.validation';
+} from '@/validations/auth.validation';
+
+import { isAuthenticated } from '@/middlewares/auth.middleware';
 
 const router = express.Router();
 

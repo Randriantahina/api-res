@@ -1,0 +1,7 @@
+POST http://localhost:5000/api/mvola/transfer
+Content-Type: application/json
+
+{
+  "amount": 2000,
+  "phoneNumber": "0341234567"
+}
