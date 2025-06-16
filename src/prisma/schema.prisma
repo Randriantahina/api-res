@@ -10,12 +10,10 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  password String
-  phone    String
-  role     String @default("user")
+  id    Int    @id @default(autoincrement())
+  name  String
+  phone String @unique
+  role  String @default("user")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -23,38 +21,32 @@ model User {
   bookings Booking[]
 }
 
-model Trip {
-  id             Int      @id @default(autoincrement())
-  origin         String
-  destination    String
-  departDate     DateTime
-  price          Float
-  totalSeats     Int
-  availableSeats Int
+model Seat {
+  id              Int    @id @default(autoincrement())
+  seatNumber      String
+  reservationTYpe String @default("lite")
+
+  booking Booking?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  bookings Booking[]
 }
 
 model Booking {
-  id     Int    @id @default(autoincrement())
-  seats  Int
-  status String @default("pending")
+  id          Int    @id @default(autoincrement())
+  status      String @default("pending")
+  bookingType String @default("lite")
 
   userId Int
-  tripId Int
+  seatId Int @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  seat Seat @relation(fields: [seatId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   Payment Payment[]
-
-  @@unique([userId, tripId])
 }
 
 model Payment {

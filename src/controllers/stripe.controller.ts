@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import stripe from '../utils/stripe';
 
-export const createCheckoutSession = async (req: Request, res: Response) => {
+const createCheckoutSession = async (req: Request, res: Response) => {
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -35,8 +35,10 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
   }
 };
 
-export const successPage = (req: Request, res: Response) => {
+const successPage = (req: Request, res: Response) => {
   res.status(200).json({
     paymentSuccess: true,
   });
 };
+
+export { successPage, createCheckoutSession };
