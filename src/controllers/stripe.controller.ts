@@ -115,7 +115,7 @@ const cancelPage = async (req: Request, res: Response): Promise<void> => {
   const bookingId = req.query.bookingId;
 
   if (!bookingId) {
-    res.json({ error: 'Booking ID is missing in query.' });
+    res.json({ bookIdNotFound: true });
     return;
   }
 
