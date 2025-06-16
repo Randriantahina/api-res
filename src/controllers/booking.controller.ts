@@ -63,7 +63,7 @@ const createBooking = async (req: Request, res: Response) => {
       ),
     );
 
-    res.status(201).json({ user, bookings });
+    res.status(201).json({ bookings });
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
@@ -178,8 +178,6 @@ const deleteBooking = async (req: Request, res: Response) => {
   }
 
   try {
-    await prisma.payment.deleteMany({ where: { bookingId } });
-
     await prisma.booking.delete({ where: { id: bookingId } });
 
     res.status(200).json({ deteted: true });
