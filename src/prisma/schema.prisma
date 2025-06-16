@@ -22,9 +22,8 @@ model User {
 }
 
 model Seat {
-  id              Int    @id @default(autoincrement())
-  seatNumber      String
-  reservationTYpe String @default("lite")
+  id         Int    @id @default(autoincrement())
+  seatNumber String
 
   booking Booking?
 
@@ -33,9 +32,8 @@ model Seat {
 }
 
 model Booking {
-  id          Int    @id @default(autoincrement())
-  status      String @default("pending")
-  bookingType String @default("lite")
+  id     Int    @id @default(autoincrement())
+  status String @default("pending")
 
   userId Int
   seatId Int @unique

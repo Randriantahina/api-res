@@ -14,7 +14,6 @@ CREATE TABLE "User" (
 CREATE TABLE "Seat" (
     "id" SERIAL NOT NULL,
     "seatNumber" TEXT NOT NULL,
-    "reservationTYpe" TEXT NOT NULL DEFAULT 'lite',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -25,7 +24,6 @@ CREATE TABLE "Seat" (
 CREATE TABLE "Booking" (
     "id" SERIAL NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'pending',
-    "bookingType" TEXT NOT NULL DEFAULT 'lite',
     "userId" INTEGER NOT NULL,
     "seatId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
