@@ -3,13 +3,19 @@ import { body } from 'express-validator';
 export const validateTransfer = [
   body('amount')
     .notEmpty()
-    .withMessage('Le montant est requis')
+    .withMessage('Amount is required')
     .isNumeric()
-    .withMessage('Le montant doit être un nombre'),
+    .withMessage('Amount must be a number'),
 
-  body('phoneNumber')
+  body('payer')
     .notEmpty()
-    .withMessage('Le numéro de téléphone est requis')
+    .withMessage('Phone number is required')
     .matches(/^(0|261)34\d{7}$/)
-    .withMessage('Numéro MVola invalide'),
+    .withMessage('Invalid MVola phone number'),
+
+  body('bookingId')
+    .notEmpty()
+    .withMessage('Booking ID is required')
+    .isInt({ gt: 0 })
+    .withMessage('Booking ID must be a positive integer'),
 ];
