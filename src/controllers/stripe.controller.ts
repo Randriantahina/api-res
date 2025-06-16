@@ -46,7 +46,8 @@ const createCheckoutSession = async (req: Request, res: Response) => {
         },
       ],
       success_url: `http://localhost:5000/api/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: 'http://localhost:5000/api/payment/cancel',
+      cancel_url:
+        'http://localhost:5000/api/payment/cancel?bookingId=${booking.id}',
       metadata: {
         bookingId: booking.id.toString(),
       },
@@ -110,4 +111,26 @@ const successPage = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { successPage, createCheckoutSession };
+const cancelPage = async (req: Request, res: Response): Promise<void> => {
+  const bookingId = req.query.bookingId;
+
+  if (!bookingId) {
+    res.json({ error: 'Booking ID is missing in query.' });
+    return;
+  }
+
+  try {
+    res.status(200).json({
+      cancelled: true,
+      message: `Payment was cancelled for booking ID: ${bookingId}`,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ unknownError: error });
+    }
+  }
+};
+
+export { successPage, createCheckoutSession, cancelPage };

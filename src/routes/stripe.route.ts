@@ -1,4 +1,5 @@
 import {
+  cancelPage,
   createCheckoutSession,
   successPage,
 } from '@/controllers/stripe.controller';
@@ -13,4 +14,6 @@ router.post('/stripe', bookingIdValidator, createCheckoutSession);
 //route apres le paiment
 router.get('/success', successPage);
 
+//route en cas d'annulation
+router.get('/cancel', cancelPage);
 export default router;
